@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+  <style>
+    video{
+        display:none;
+    }
+    .output_canvas{
+        display:none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <canvas class="output_canvas" width="1280px" height="720px"></canvas>
+    <p id="message" style="font-size:100px;position:absolute;">Turn on camera</p>
+    <video class="input_video"></video>
+  </div>
+</body>
+<script type="module">
+    const videoElement = document.getElementsByClassName('input_video')[0];
+    const canvasElement = document.getElementsByClassName('output_canvas')[0];
+    const canvasCtx = canvasElement.getContext('2d');
+    let message=document.getElementById('message');
+    function onResults(results) {
+      canvasCtx.save();
+      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      canvasCtx.drawImage(
+          results.image, 0, 0, canvasElement.width, canvasElement.height);
+      if (results.multiFaceLandmarks) {
+        for (const landmarks of results.multiFaceLandmarks) {
+          drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION,
+                         {color: '#C0C0C070', lineWidth: 1});
+          drawConnectors(canvasCtx, landmarks, FACEMESH_RIGHT_EYE, {color: '#FF3030'});
+          drawConnectors(canvasCtx, landmarks, FACEMESH_RIGHT_EYEBROW, {color: '#FF3030'});
+          drawConnectors(canvasCtx, landmarks, FACEMESH_RIGHT_IRIS, {color: '#FF3030'});
+          drawConnectors(canvasCtx, landmarks, FACEMESH_LEFT_EYE, {color: '#30FF30'});
+          drawConnectors(canvasCtx, landmarks, FACEMESH_LEFT_EYEBROW, {color: '#30FF30'});
+          drawConnectors(canvasCtx, landmarks, FACEMESH_LEFT_IRIS, {color: '#30FF30'});
+          drawConnectors(canvasCtx, landmarks, FACEMESH_FACE_OVAL, {color: '#E0E0E0'});
+          drawConnectors(canvasCtx, landmarks, FACEMESH_LIPS, {color: '#E0E0E0'});
+         displayEmoji(landmarks);
+        }
+      }
+      canvasCtx.restore();
+    }
+    
+    const faceMesh = new FaceMesh({locateFile: (file) => {
+      return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+    }});
+    faceMesh.setOptions({
+      maxNumFaces: 1,
+      refineLandmarks: true,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
+    });
+    faceMesh.onResults(onResults);
+    
+    const camera = new Camera(videoElement, {
+      onFrame: async () => {
+        await faceMesh.send({image: videoElement});
+      },
+      width: 1280,
+      height: 720
+    });
+    camera.start();
+
+    function displayEmoji(landmarks){
+        let lipsDistance=Math.abs(landmarks[13].y-landmarks[14].y);
+        let lower_lipArc=Math.acos(
+            ((landmarks[95].x-landmarks[14].x)*(landmarks[324].x-landmarks[14].x)+(landmarks[95].y-landmarks[14].y)*(landmarks[324].y-landmarks[14].y))
+            /
+            (
+                Math.sqrt(
+                Math.pow((landmarks[95].x-landmarks[14].x),2)+Math.pow((landmarks[95].y-landmarks[14].y),2)
+            )
+            *
+            Math.sqrt(
+                Math.pow((landmarks[324].x-landmarks[14].x),2)+Math.pow((landmarks[324].y-landmarks[14].y),2)
+            )
+            )
+        );
+        let left_eyelid_distance=Math.abs(landmarks[145].y-landmarks[159].y);
+        let right_eyelid_distance=Math.abs(landmarks[386].y-landmarks[374].y);
+
+        let bigEyes=left_eyelid_distance>0.028 && right_eyelid_distance>0.028;
+        let bigMouth=lipsDistance>0.05;
+        let grin=lower_lipArc<2.8 && !bigMouth;
+        let smile=lower_lipArc<2.3 ;
+        console.log(lower_lipArc);
+        let out;
+        if(bigMouth)out='😲';
+        else if(grin&&!smile&&!bigEyes)out='🙂';
+        else if(smile)out='😁';
+        else if(bigEyes)out='👀';
+        else out='😐';
+        message.textContent=out;
+        console.log(left_eyelid_distance,right_eyelid_distance);
+    }
+    
+    </script>
+</html>

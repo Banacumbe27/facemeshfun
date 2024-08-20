@@ -11,7 +11,7 @@
         display:none;
     }
     .output_canvas{
-        display:auto;
+        display:none;
     }
   </style>
 </head>
@@ -98,7 +98,6 @@
         if(bigMouth)out='😲';
         else if(grin&&!smile&&!bigEyes)out='🙂';
         else if(smile)out='😁';
-        else if(bigEyes)out='👀';
         else out='😐';
         message.textContent=out;
         console.log(left_eyelid_distance,right_eyelid_distance);

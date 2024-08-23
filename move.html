@@ -26,6 +26,7 @@
 <body>
 <div id='box'>
 </div>
+<p style="font-size:50px" id="debug"></p>
 <!-- <h1 style="font-size:10vh;user-select:none;font-family:'Courier New', Courier, monospace">LOOK GUYS IT'S PHYSICS :D press R to respawn box</h1> -->
 </body>
 <script>
@@ -54,6 +55,12 @@ initPoint.x=e.clientX-box.getBoundingClientRect().left;
 initPoint.y=e.clientY-box.getBoundingClientRect().top;
 mouseStart.x=e.clientX;
 mouseStart.y=e.clientY;
+if(e.touches.length>0){
+    initPoint.x=e.touches[0].clientX-box.getBoundingClientRect().left;
+    initPoint.y=e.touches[0].clientY-box.getBoundingClientRect().top;
+    mouseStart.x=e.touches.clientX;
+    mouseStart.y=e.touches.clientY;
+}
 e.preventDefault();
 Timer=setInterval(()=>{timedelta++;},1);
 };
@@ -61,6 +68,10 @@ window.onmouseup=window.ontouchend=(e)=>{holdBox=false; initPoint={x:0,y:0};
 clearInterval(Timer);
 mouseDelta.x=e.clientX-mouseStart.x;
 mouseDelta.y=e.clientY-mouseStart.y;
+if(e.touches.length>0){
+    mouseDelta.x=e.touches[0].clientX-mouseStart.x;
+    mouseDelta.y=e.touches[0].clientY-mouseStart.y;
+}
 e.preventDefault();
 draggedVelo.x=mouseDelta.x/timedelta;
 draggedVelo.y=mouseDelta.y/timedelta;
@@ -70,9 +81,14 @@ gravity();
 decelerate();
 };
 window.onmousemove=window.ontouchmove=(e)=>{
+    document.getElementById('debug').textContent=e.touch;
 if(holdBox ){
 box.style.top=e.clientY-initPoint.y+'px';
 box.style.left=e.clientX-initPoint.x+'px';
+if(e.touches.length>0){
+box.style.top=e.touches[0].clientY-initPoint.y+'px';
+box.style.left=e.touches[0].clientX-initPoint.x+'px';
+}
 e.preventDefault();
 }
 

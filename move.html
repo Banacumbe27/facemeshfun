@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    body{
+        height:100vh;
+        width:100vw;
+    }
+#box {
+  background-color: lightgrey;
+  width: 16vh;
+  height:10vh;
+  border:1vw solid green;
+  position:absolute;
+}
+@media screen and(max-width:462px) {
+    #box{
+        width:30vh;
+        height:30vw;
+        border:1vh solid green;
+    }
+}
+</style>
+</head>
+<body>
+<div id='box'>
+</div>
+<!-- <h1 style="font-size:10vh;user-select:none;font-family:'Courier New', Courier, monospace">LOOK GUYS IT'S PHYSICS :D press R to respawn box</h1> -->
+</body>
+<script>
+const box=document.getElementById('box');
+let holdBox=false;
+let initPoint={x:0,y:0};
+let g=0.1;
+let currentPos;
+let draggedVelo={x:0,y:0};
+let mouseStart={x:0,y:0};
+let mouseDelta={x:0,y:0};
+let timedelta=0;
+let Timer;
+let deceleration=0.01;
+let v=0;
+window.onkeypress=(e)=>{
+if(e.key==='r'){
+    box.style.top=0;
+    box.style.left=0;
+    v=0;
+    gravity();
+}
+};
+box.onmousedown=box.ontouchstart=(e)=>{holdBox=true;
+initPoint.x=e.clientX-box.getBoundingClientRect().left;
+initPoint.y=e.clientY-box.getBoundingClientRect().top;
+mouseStart.x=e.clientX;
+mouseStart.y=e.clientY;
+Timer=setInterval(()=>{timedelta++;},1);
+};
+window.onmouseup=window.ontouchend=(e)=>{holdBox=false; initPoint={x:0,y:0};
+clearInterval(Timer);
+mouseDelta.x=e.clientX-mouseStart.x;
+mouseDelta.y=e.clientY-mouseStart.y;
+draggedVelo.x=mouseDelta.x/timedelta;
+draggedVelo.y=mouseDelta.y/timedelta;
+timedelta=0;
+v=0;
+gravity();
+decelerate();
+};
+window.onmousemove=window.ontouchmove=(e)=>{
+if(holdBox ){
+box.style.top=e.clientY-initPoint.y+'px';
+box.style.left=e.clientX-initPoint.x+'px';
+}
+
+};
+let smoothness=10;
+let box_in_bound=(type=0)=>{if(type==0)return (
+currentPos.y<=window.innerHeight-2*box.clientHeight
+
+);
+else return(
+    currentPos.x<=window.innerWidth-box.clientWidth
+    &&
+    currentPos.x>=0
+    &&
+    
+    currentPos.y<=window.innerHeight-box.clientHeight
+    );
+
+};
+function decelerate(){
+    currentPos={x:box.getBoundingClientRect().left,y:box.getBoundingClientRect().top};
+    box.style.top=currentPos.y+draggedVelo.y+'px';
+    box.style.left=currentPos.x+draggedVelo.x+'px';
+    if(draggedVelo.x>deceleration)
+    draggedVelo.x-=deceleration;
+    if(draggedVelo.y>deceleration)
+    draggedVelo.y-=deceleration;
+    if(!holdBox && box_in_bound())setTimeout(decelerate,smoothness);
+
+}
+function gravity(){
+currentPos={x:box.getBoundingClientRect().left,y:box.getBoundingClientRect().top};
+v+=g;
+box.style.top=currentPos.y+v+'px';
+if(!holdBox && box_in_bound())setTimeout(gravity,smoothness);
+console.log(v);
+}
+gravity();
+</script>
+</html>
+
+

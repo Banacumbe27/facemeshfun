@@ -12,6 +12,7 @@
   height:10vh;
   border:1vw solid green;
   position:absolute;
+  user-select: none;
 }
 @media screen and(max-width:462px) {
     #box{
@@ -53,12 +54,14 @@ initPoint.x=e.clientX-box.getBoundingClientRect().left;
 initPoint.y=e.clientY-box.getBoundingClientRect().top;
 mouseStart.x=e.clientX;
 mouseStart.y=e.clientY;
+e.preventDefault();
 Timer=setInterval(()=>{timedelta++;},1);
 };
 window.onmouseup=window.ontouchend=(e)=>{holdBox=false; initPoint={x:0,y:0};
 clearInterval(Timer);
 mouseDelta.x=e.clientX-mouseStart.x;
 mouseDelta.y=e.clientY-mouseStart.y;
+e.preventDefault();
 draggedVelo.x=mouseDelta.x/timedelta;
 draggedVelo.y=mouseDelta.y/timedelta;
 timedelta=0;
@@ -70,6 +73,7 @@ window.onmousemove=window.ontouchmove=(e)=>{
 if(holdBox ){
 box.style.top=e.clientY-initPoint.y+'px';
 box.style.left=e.clientX-initPoint.x+'px';
+e.preventDefault();
 }
 
 };
